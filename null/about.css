@@ -1,0 +1,148 @@
+/* =========================
+   Pengcheng Portfolio - About
+   File: about.css
+   与首页视觉统一，但更偏阅读体验
+   ========================= */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #ffffff;
+  --bg-soft: #f7f8fa;
+  --text: #222222;
+  --muted: #666666;
+  --border: #e5e7eb;
+  --primary: #0a66ff;
+  --shadow: 0 2px 8px rgba(0,0,0,.05);
+  --radius: 14px;
+  --maxw: 900px;
+  --space: 24px;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+    "Noto Color Emoji", "Poppins", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.8;
+}
+
+/* 导航（简版） */
+nav {
+  position: sticky; /* 详情页导航可滚动置顶 */
+  top: 0;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  z-index: 100;
+}
+nav ul {
+  list-style: none;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 14px 20px;
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+nav a {
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 600;
+  padding: 8px 10px;
+  border-radius: 8px;
+  transition: color .25s ease, background-color .25s ease;
+}
+nav a:hover { color: var(--primary); background: #f4f7ff; }
+nav a:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* 版心与区块 */
+section {
+  padding: 56px 20px 72px;
+  display: block;
+}
+.aboutMe {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: clamp(20px, 4vw, 40px);
+}
+
+/* 标题与正文 */
+.aboutMe h2 {
+  font-size: clamp(22px, 3.2vw, 34px);
+  font-weight: 800;
+  margin-bottom: 12px;
+  letter-spacing: .2px;
+}
+.aboutMe p,
+.aboutMe li {
+  color: var(--text);
+  font-size: clamp(15px, 1.6vw, 17px);
+}
+
+.aboutMe p + p { margin-top: 12px; }
+.aboutMe .muted { color: var(--muted); }
+
+/* 详情页可选排版（两栏在宽屏时） */
+@media (min-width: 900px) {
+  .aboutMe {
+    display: grid;
+    grid-template-columns: 1.1fr .9fr;
+    gap: 32px;
+  }
+  .aboutMe .col {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .aboutMe .sidebar {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+}
+
+/* 列表样式（如果你加经历/技能列表） */
+.aboutMe ul {
+  list-style: disc;
+  padding-left: 1.2rem;
+}
+.aboutMe li + li { margin-top: 6px; }
+
+/* 链接与按钮（如果需要） */
+a.button, .button {
+  display: inline-block;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease, color .15s ease;
+}
+a.button:hover, .button:hover {
+  border-color: #cfd6e0;
+  box-shadow: 0 4px 14px rgba(0,0,0,.06);
+  transform: translateY(-1px);
+}
+a.button:focus-visible, .button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* 减动效 */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { transition: none !important; animation: none !important; }
+}
