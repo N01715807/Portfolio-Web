@@ -1,17 +1,18 @@
 {
   "name": "portfolio-web",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Portfolio backend API for HTTP5222 assignment",
+  "main": "src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/N01715807/Portfolio-Web.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Pengcheng Li",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/N01715807/Portfolio-Web/issues"
@@ -20,8 +21,12 @@
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
+    "ejs": "^3.1.10",
     "express": "^5.1.0",
     "mongoose": "^8.19.2",
     "morgan": "^1.10.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
   }
 }
