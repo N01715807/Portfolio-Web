@@ -2,25 +2,50 @@ const express = require('express');
 const mongoose = require('mongoose');
 const morgan = require('morgan');
 const cors = require('cors');
+const path = require('path');
 
 require('dotenv').config();
 
-//Initializing the Express application
 const app = express();
+
+// middlewares
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 
-//Read configuration
-const PORT = process.env.PORT || 3000;
-const MONGODB_URI = process.env.MONGODB_URI;
+// static
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Health Check
+// views
+const expressLayouts = require('express-ejs-layouts');
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+app.use(expressLayouts);
+app.set('layout', 'layout');
+
+// health
 app.get('/health', (req, res) => {
   res.json({ ok: true, env: process.env.NODE_ENV || 'dev' });
 });
 
-// Try to connect to the database and start the service
+// API routes
+app.use('/api/profile', require('./routes/api/profile.routes'));
+app.use('/api/codeworks', require('./routes/api/codework.routes'));
+
+// Admin routes
+app.use('/admin', require('./routes/admin/admin.routes'));
+
+// error handler
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(err.status || 500).json({ error: 'SERVER_ERROR', message: err.message });
+});
+
+// start
+const PORT = process.env.PORT || 3000;
+const MONGODB_URI = process.env.MONGODB_URI;
+
 (async () => {
   try {
     if (!MONGODB_URI) throw new Error('Missing MONGODB_URI');
@@ -35,12 +60,3 @@ app.get('/health', (req, res) => {
     process.exit(1);
   }
 })();
-
-app.use('/api/profile', require('./routes/api/profile.routes'));
-app.use('/api/codeworks', require('./routes/api/codework.routes'));
-
-const path = require('path');
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-app.use(express.urlencoded({ extended: true })); 
-app.use('/admin', require('./routes/admin/admin.routes'));

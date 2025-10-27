@@ -1,93 +1,271 @@
-<% layout('layout') -%>
 
-<div class="card">
-  <h2>Add New Codework</h2>
-  <form method="post" action="/admin/codeworks/create">
-    <div class="row">
-      <div>
-        <label>Title*</label>
-        <input name="title" required />
-
-        <label>Summary*</label>
-        <textarea name="summary" required></textarea>
-
-        <label>Content (Markdown ok)</label>
-        <textarea name="content"></textarea>
-
-        <label>Images (one URL per line)</label>
-        <textarea name="images"></textarea>
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Codeworks</span>
+        <div class="d-flex gap-2">
+          <select id="f-kind" class="form-select form-select-sm" style="max-width:160px">
+            <option value="">All kinds</option>
+            <option value="featured">featured</option>
+            <option value="technical">technical</option>
+          </select>
+          <select id="f-status" class="form-select form-select-sm" style="max-width:160px">
+            <option value="">All status</option>
+            <option value="draft">draft</option>
+            <option value="published">published</option>
+          </select>
+          <button class="btn btn-outline-secondary btn-sm" id="btn-filter">Filter</button>
+        </div>
       </div>
-      <div>
-        <label>Kind*</label>
-        <select name="kind" required>
-          <option value="featured">featured</option>
-          <option value="technical">technical</option>
-        </select>
 
-        <label>Status</label>
-        <select name="status">
-          <option value="draft">draft</option>
-          <option value="published" selected>published</option>
-        </select>
+      <div class="card-body">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th style="width:36%">Title</th>
+              <th>Kind</th>
+              <th>Status</th>
+              <th>Order</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
 
-        <label>Order (bigger = higher)</label>
-        <input name="order" type="number" value="0"/>
-
-        <label>GitHub</label>
-        <input name="github"/>
-
-        <label>Demo</label>
-        <input name="demo"/>
-
-        <label>Tags (comma separated)</label>
-        <input name="tags" placeholder="node, express, mongo"/>
-
-        <label>Tech Stack (comma separated)</label>
-        <input name="techStack" placeholder="react, tailwind"/>
+        <nav class="d-flex justify-content-between align-items-center mt-3">
+          <div class="text-muted small" id="stats"></div>
+          <ul class="pagination pagination-sm mb-0">
+            <li class="page-item"><a class="page-link" href="#" id="prev">Prev</a></li>
+            <li class="page-item"><span class="page-link" id="pageNo">1</span></li>
+            <li class="page-item"><a class="page-link" href="#" id="next">Next</a></li>
+          </ul>
+        </nav>
       </div>
     </div>
+  </div>
 
-    <div style="margin-top:12px">
-      <button class="btn primary" type="submit">Create</button>
-      <a class="btn" href="/api/codeworks?status=published" target="_blank">View JSON</a>
+  <!-- 表单 -->
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span id="formTitle">New Codework</span>
+        <div class="panel-toolbar">
+          <button class="btn btn-secondary btn-sm" id="btn-new">New</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <form id="cf" class="vstack gap-3" onsubmit="return false;">
+          <input type="hidden" name="_id">
+
+          <div>
+            <label class="form-label">Title</label>
+            <input class="form-control" name="title" required>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Kind</label>
+              <select class="form-select" name="kind" required>
+                <option value="featured">featured</option>
+                <option value="technical">technical</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Status</label>
+              <select class="form-select" name="status">
+                <option value="draft">draft</option>
+                <option value="published">published</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="form-label">Summary</label>
+            <textarea class="form-control" name="summary" rows="3" required></textarea>
+          </div>
+
+          <div>
+            <label class="form-label">Content (Markdown / HTML)</label>
+            <textarea class="form-control" name="content" rows="5"></textarea>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Link</label>
+              <input class="form-control" name="link" placeholder="https://...">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Order (big first)</label>
+              <input class="form-control" type="number" name="order" value="0">
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Images (comma URLs)</label>
+              <input class="form-control" name="images" placeholder="https://a.jpg, https://b.png">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Tags (comma)</label>
+              <input class="form-control" name="tags" placeholder="node, api, map">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="card-footer d-flex justify-content-end gap-2">
+        <button class="btn btn-outline-danger" id="btn-cancel" type="button">Reset</button>
+        <button class="btn btn-primary" id="btn-save" type="button">Save</button>
+      </div>
     </div>
-  </form>
+  </div>
 </div>
 
-<div class="card">
-  <h2>All Codeworks</h2>
-  <table>
-    <thead>
+<script>
+(async function () {
+  const rows = document.getElementById('rows');
+  const stats = document.getElementById('stats');
+  const pageNo = document.getElementById('pageNo');
+  const prev = document.getElementById('prev');
+  const next = document.getElementById('next');
+  const kindSel = document.getElementById('f-kind');
+  const statusSel = document.getElementById('f-status');
+  const btnFilter = document.getElementById('btn-filter');
+  const form = document.getElementById('cf');
+  const btnNew = document.getElementById('btn-new');
+  const btnSave = document.getElementById('btn-save');
+  const btnCancel = document.getElementById('btn-cancel');
+  const formTitle = document.getElementById('formTitle');
+
+  let state = { page: 1, limit: 10, kind: '', status: '' };
+
+  function toBadge(cls, text) {
+    return `<span class="badge-soft ${cls||''}">${text}</span>`;
+  }
+  const normStrList = (s) => (s||'').split(',').map(x=>x.trim()).filter(Boolean);
+
+  async function list() {
+    const q = new URLSearchParams({
+      page: state.page, limit: state.limit,
+      ...(state.kind && { kind: state.kind }),
+      ...(state.status && { status: state.status })
+    });
+    const r = await fetch('/api/codeworks?' + q.toString());
+    if (!r.ok) { alert('Load failed'); return; }
+    const data = await r.json();
+
+    rows.innerHTML = (data.items||[]).map(x => `
       <tr>
-        <th style="width:28%">Title</th>
-        <th>Kind</th>
-        <th>Status</th>
-        <th>Order</th>
-        <th style="width:32%">Links</th>
-        <th style="width:14%">Actions</th>
+        <td>
+          <div class="fw-semibold">${x.title||''}</div>
+          <div class="text-muted small">${x.summary||''}</div>
+        </td>
+        <td>${toBadge('', x.kind||'-')}</td>
+        <td>${toBadge(x.status==='published'?'success':'warning', x.status||'draft')}</td>
+        <td>${x.order ?? 0}</td>
+        <td class="text-end cell-actions">
+          <button class="btn btn-sm btn-secondary" data-edit="${x._id}">Edit</button>
+          <button class="btn btn-sm btn-outline-danger" data-del="${x._id}">Delete</button>
+        </td>
       </tr>
-    </thead>
-    <tbody>
-      <% if ((items||[]).length === 0) { %>
-        <tr><td colspan="6" class="muted">No items yet.</td></tr>
-      <% } %>
-      <% (items||[]).forEach(function(it){ %>
-        <tr>
-          <td><strong><%= it.title %></strong><br/><span class="muted"><%= it.summary %></span></td>
-          <td><%= it.kind %></td>
-          <td><%= it.status %></td>
-          <td><%= it.order %></td>
-          <td class="muted">
-            <% if (it.link && it.link.github) { %>GitHub: <a href="<%= it.link.github %>" target="_blank"><%= it.link.github %></a><br/><% } %>
-            <% if (it.link && it.link.demo) { %>Demo: <a href="<%= it.link.demo %>" target="_blank"><%= it.link.demo %></a><% } %>
-          </td>
-          <td class="actions">
-            <form method="post" action="/admin/codeworks/<%= it._id %>/delete" onsubmit="return confirm('Delete this item?');">
-              <button class="btn danger" type="submit">Delete</button>
-            </form>
-          </td>
-        </tr>
-      <% }) %>
-    </tbody>
-  </table>
-</div>
+    `).join('');
+
+    const totalPages = Math.max(1, Math.ceil((data.total||0) / (data.limit||state.limit)));
+    pageNo.textContent = String(state.page);
+    prev.parentElement.classList.toggle('disabled', state.page <= 1);
+    next.parentElement.classList.toggle('disabled', state.page >= totalPages);
+    stats.textContent = `Total ${data.total||0} · Page ${state.page}/${totalPages}`;
+  }
+
+  function fillForm(doc = {}) {
+    const map = {
+      _id: doc._id || '',
+      title: doc.title || '',
+      summary: doc.summary || '',
+      content: doc.content || '',
+      link: doc.link || '',
+      images: Array.isArray(doc.images) ? doc.images.join(', ') : (doc.images || ''),
+      tags: Array.isArray(doc.tags) ? doc.tags.join(', ') : (doc.tags || ''),
+      kind: doc.kind || 'technical',
+      status: doc.status || 'draft',
+      order: doc.order ?? 0
+    };
+    for (const [k,v] of Object.entries(map)) {
+      const el = form.querySelector(`[name="${k}"]`);
+      if (el) el.value = v;
+    }
+    formTitle.textContent = map._id ? 'Edit Codework' : 'New Codework';
+  }
+  function resetForm(){ fillForm({}); }
+
+  async function createOrUpdate() {
+    const fd = new FormData(form);
+    const obj = Object.fromEntries(fd.entries());
+    const id = obj._id; delete obj._id;
+
+    obj.images = normStrList(obj.images);
+    obj.tags = normStrList(obj.tags);
+
+    if (!obj.title || !obj.summary || !obj.kind) {
+      alert('Title, Summary, Kind are required'); return;
+    }
+
+    let r;
+    if (id) {
+      r = await fetch('/api/codeworks/' + id, {
+        method: 'PUT', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(obj)
+      });
+    } else {
+      r = await fetch('/api/codeworks', {
+        method: 'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(obj)
+      });
+    }
+    if (!r.ok) {
+      const e = await r.json().catch(()=>({}));
+      alert('Save failed: ' + (e.message || e.error || r.status));
+      return;
+    }
+    resetForm();
+    await list();
+  }
+
+  rows.addEventListener('click', async (e) => {
+    const idDel = e.target.getAttribute('data-del');
+    const idEdit = e.target.getAttribute('data-edit');
+
+    if (idDel) {
+      if (confirm('Delete this item?')) {
+        const r = await fetch('/api/codeworks/' + idDel, { method:'DELETE' });
+        if (!r.ok) { alert('Delete failed'); return; }
+        if (form.querySelector('[name="_id"]').value === idDel) resetForm();
+        list();
+      }
+    }
+    if (idEdit) {
+      const r = await fetch('/api/codeworks/' + idEdit);
+      if (!r.ok) { alert('Load item failed'); return; }
+      const doc = await r.json();
+      fillForm(doc);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+
+  btnNew.addEventListener('click', resetForm);
+  btnSave.addEventListener('click', createOrUpdate);
+  btnCancel.addEventListener('click', resetForm);
+
+  prev.addEventListener('click', (e) => { e.preventDefault(); if (state.page>1) { state.page--; list(); }});
+  next.addEventListener('click', (e) => { e.preventDefault(); state.page++; list(); });
+  btnFilter.addEventListener('click', () => {
+    state.kind = kindSel.value || '';
+    state.status = statusSel.value || '';
+    state.page = 1;
+    list();
+  });
+
+  resetForm();
+  list();
+})();
+</script>

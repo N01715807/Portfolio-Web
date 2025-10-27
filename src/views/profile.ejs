@@ -1,60 +1,111 @@
-<% layout('layout') -%>
+<!-- views/profile.ejs -->
 <div class="card">
-  <h2>Profile</h2>
-  <form method="post" action="/admin/profile">
-    <div class="row">
-      <div>
-        <label>Name*</label>
-        <input name="name" required value="<%= profile.name || '' %>"/>
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span>Profile</span>
+    <div class="panel-toolbar">
+      <span class="badge-soft primary">About</span>
+    </div>
+  </div>
 
-        <label>Headline</label>
-        <input name="headline" value="<%= profile.headline || '' %>"/>
-
-        <label>Short Bio (for Home)</label>
-        <textarea name="bioShort"><%= profile.bioShort || '' %></textarea>
-
-        <label>Long Bio (About page, Markdown ok)</label>
-        <textarea name="bioLong"><%= profile.bioLong || '' %></textarea>
-      </div>
-      <div>
-        <label>Avatar URL</label>
-        <input name="avatar" value="<%= profile.avatar || '' %>"/>
-
-        <label>Quick Facts (one per line)</label>
-        <textarea name="quickFacts"><%= (profile.quickFacts||[]).join('\n') %></textarea>
-
-        <div class="row">
-          <div>
-            <label>Email</label>
-            <input name="email" value="<%= (profile.links||{}).email || '' %>"/>
-            <label>GitHub</label>
-            <input name="github" value="<%= (profile.links||{}).github || '' %>"/>
-          </div>
-          <div>
-            <label>LinkedIn</label>
-            <input name="linkedin" value="<%= (profile.links||{}).linkedin || '' %>"/>
-            <label>Website</label>
-            <input name="website" value="<%= (profile.links||{}).website || '' %>"/>
-          </div>
+  <div class="card-body">
+    <form id="pf" class="vstack gap-3" onsubmit="return false;">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Name</label>
+          <input class="form-control" name="name" placeholder="Your name">
         </div>
-
-        <div class="row">
-          <div>
-            <label>CTA Label</label>
-            <input name="ctaLabel" value="<%= (profile.cta||{}).label || '' %>"/>
-          </div>
-          <div>
-            <label>CTA Href</label>
-            <input name="ctaHref" value="<%= (profile.cta||{}).href || '' %>"/>
-          </div>
+        <div class="col-md-6">
+          <label class="form-label">Headline</label>
+          <input class="form-control" name="headline" placeholder="e.g. Full-stack Developer">
         </div>
       </div>
-    </div>
 
-    <div style="margin-top:12px">
-      <button class="btn primary" type="submit">Save</button>
-      <a class="btn" href="/api/profile" target="_blank">View JSON</a>
-      <span class="muted">Save</span>
-    </div>
-  </form>
+      <div>
+        <label class="form-label">Short Bio</label>
+        <textarea class="form-control" name="bioShort" rows="2" placeholder="One-sentence intro"></textarea>
+      </div>
+
+      <div>
+        <label class="form-label">Long Bio</label>
+        <textarea class="form-control" name="bioLong" rows="6" placeholder="Tell more about yourself"></textarea>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Avatar URL</label>
+          <input class="form-control" name="avatar" placeholder="https://...">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Links (comma-separated)</label>
+          <input class="form-control" name="links" placeholder="https://github.com/xxx, https://linkedin.com/in/xxx">
+        </div>
+      </div>
+
+      <div>
+        <label class="form-label">Quick Facts (one per line)</label>
+        <textarea class="form-control" name="quickFacts" rows="4" placeholder="Toronto-based&#10;Ice hockey fan&#10;Node.js / PHP / GIS"></textarea>
+      </div>
+    </form>
+  </div>
+
+  <div class="card-footer d-flex justify-content-end gap-2">
+    <button class="btn btn-outline-danger" type="button" id="btn-cancel">Reset</button>
+    <button class="btn btn-primary" type="button" id="btn-save">Save</button>
+  </div>
 </div>
+
+<script>
+(async function () {
+  const form = document.getElementById('pf');
+  const btnSave = document.getElementById('btn-save');
+  const btnCancel = document.getElementById('btn-cancel');
+
+  function fill(data = {}) {
+    const map = {
+      name: data.name ?? '',
+      headline: data.headline ?? '',
+      bioShort: data.bioShort ?? '',
+      bioLong: data.bioLong ?? '',
+      avatar: data.avatar ?? '',
+      links: Array.isArray(data.links) ? data.links.join(', ') : (data.links ?? ''),
+      quickFacts: Array.isArray(data.quickFacts) ? data.quickFacts.join('\n') : (data.quickFacts ?? '')
+    };
+    for (const [k, v] of Object.entries(map)) {
+      const el = form.querySelector(`[name="${k}"]`);
+      if (el) el.value = v;
+    }
+  }
+
+  async function load() {
+    const r = await fetch('/api/profile');
+    const data = await r.json();
+    fill(data);
+    window.__cachedProfile = data;
+  }
+
+  async function save() {
+    const fd = new FormData(form);
+    const obj = Object.fromEntries(fd.entries());
+    // normalize arrays
+    obj.links = (obj.links || '').split(',').map(s => s.trim()).filter(Boolean);
+    obj.quickFacts = (obj.quickFacts || '').split('\n').map(s => s.trim()).filter(Boolean);
+
+    const r = await fetch('/api/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify(obj)
+    });
+    if (!r.ok) {
+      const e = await r.json().catch(()=>({message:'Failed'}));
+      alert('Save failed: ' + (e.message || e.error || r.status));
+      return;
+    }
+    alert('Saved');
+    await load();
+  }
+
+  btnSave.addEventListener('click', save);
+  btnCancel.addEventListener('click', () => fill(window.__cachedProfile || {}));
+  load();
+})();
+</script>

@@ -2,28 +2,31 @@ const Codework = require('../models/codework.model');
 
 // GET /api/codeworks
 exports.list = async (req, res) => {
-    try {
-        const { kind, status } = req.query;
-        const page = Math.max(parseInt(req.query.page || '1', 10), 1);
-        const limit = Math.min(Math.max(parseInt(req.query.limit || '20', 10), 1), 100);
-        const filter = {};
-         if (kind) filter.kind = kind;
-         if (status) filter.status = status;
-        const cursor = Codework.find(filter)
-         .sort({ order: -1, createdAt: -1 })
-         .skip((page - 1) * limit)
-         .limit(limit)
-         .lean();
-        const [items, total] = await Promise.all([
-            cursor,
-            Codework.countDocuments(filter)]);
-            return res.json({
-                page, limit, total,
-                items});
-    } catch (error) {
-        console.error('list codeworks error:', err);
-        return res.status(500).json({ error: 'SERVER_ERROR' });
-    }
+  try {
+    const { kind, status } = req.query;
+    const page  = Math.max(parseInt(req.query.page  || '1', 10), 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit || '20', 10), 1), 100);
+
+    const filter = {};
+    if (kind) filter.kind = kind;
+    if (status) filter.status = status;
+
+    const cursor = Codework.find(filter)
+      .sort({ order: -1, createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
+
+    const [items, total] = await Promise.all([
+      cursor,
+      Codework.countDocuments(filter)
+    ]);
+
+    return res.json({ page, limit, total, items });
+  } catch (err) {
+    console.error('list codeworks error:', err);
+    return res.status(500).json({ error: 'SERVER_ERROR' });
+  }
 };
 
 // GET /api/codeworks/:id
@@ -45,7 +48,16 @@ exports.create = async (req, res) => {
     if (!title || !summary || !kind) {
       return res.status(400).json({ error: 'MISSING_FIELDS', fields: ['title', 'summary', 'kind'] });
     }
-    const doc = await Codework.create(req.body);
+
+    const allowed = [
+      'title','summary','content','images','link','tags','techStack',
+      'kind','status','order'
+    ];
+    const payload = Object.fromEntries(
+      Object.entries(req.body).filter(([k]) => allowed.includes(k))
+    );
+
+    const doc = await Codework.create(payload);
     return res.status(201).json(doc);
   } catch (err) {
     console.error('create codework error:', err);
@@ -56,12 +68,13 @@ exports.create = async (req, res) => {
 // PUT /api/codeworks/:id
 exports.update = async (req, res) => {
   try {
-    const payload = req.body;
     const allowed = [
       'title','summary','content','images','link','tags','techStack',
       'kind','status','order'
     ];
-    Object.keys(payload).forEach(k => { if (!allowed.includes(k)) delete payload[k]; });
+    const payload = Object.fromEntries(
+      Object.entries(req.body).filter(([k]) => allowed.includes(k))
+    );
 
     const updated = await Codework.findByIdAndUpdate(
       req.params.id,
