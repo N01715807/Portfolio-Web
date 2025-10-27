@@ -36,3 +36,5 @@ app.get('/health', (req, res) => {
   }
 })();
 
+app.use('/api/profile', require('./routes/api/profile.routes'));
+app.use('/api/codeworks', require('./routes/api/codework.routes'));
