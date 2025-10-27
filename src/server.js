@@ -38,3 +38,9 @@ app.get('/health', (req, res) => {
 
 app.use('/api/profile', require('./routes/api/profile.routes'));
 app.use('/api/codeworks', require('./routes/api/codework.routes'));
+
+const path = require('path');
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+app.use(express.urlencoded({ extended: true })); 
+app.use('/admin', require('./routes/admin/admin.routes'));

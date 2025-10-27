@@ -1,0 +1,60 @@
+<% layout('layout') -%>
+<div class="card">
+  <h2>Profile</h2>
+  <form method="post" action="/admin/profile">
+    <div class="row">
+      <div>
+        <label>Name*</label>
+        <input name="name" required value="<%= profile.name || '' %>"/>
+
+        <label>Headline</label>
+        <input name="headline" value="<%= profile.headline || '' %>"/>
+
+        <label>Short Bio (for Home)</label>
+        <textarea name="bioShort"><%= profile.bioShort || '' %></textarea>
+
+        <label>Long Bio (About page, Markdown ok)</label>
+        <textarea name="bioLong"><%= profile.bioLong || '' %></textarea>
+      </div>
+      <div>
+        <label>Avatar URL</label>
+        <input name="avatar" value="<%= profile.avatar || '' %>"/>
+
+        <label>Quick Facts (one per line)</label>
+        <textarea name="quickFacts"><%= (profile.quickFacts||[]).join('\n') %></textarea>
+
+        <div class="row">
+          <div>
+            <label>Email</label>
+            <input name="email" value="<%= (profile.links||{}).email || '' %>"/>
+            <label>GitHub</label>
+            <input name="github" value="<%= (profile.links||{}).github || '' %>"/>
+          </div>
+          <div>
+            <label>LinkedIn</label>
+            <input name="linkedin" value="<%= (profile.links||{}).linkedin || '' %>"/>
+            <label>Website</label>
+            <input name="website" value="<%= (profile.links||{}).website || '' %>"/>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>CTA Label</label>
+            <input name="ctaLabel" value="<%= (profile.cta||{}).label || '' %>"/>
+          </div>
+          <div>
+            <label>CTA Href</label>
+            <input name="ctaHref" value="<%= (profile.cta||{}).href || '' %>"/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px">
+      <button class="btn primary" type="submit">Save</button>
+      <a class="btn" href="/api/profile" target="_blank">View JSON</a>
+      <span class="muted">Save</span>
+    </div>
+  </form>
+</div>
