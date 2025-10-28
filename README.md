@@ -49,11 +49,11 @@ GET http://localhost:3000/api/codeworks
 - Env:
   - NODE_VERSION=20
   - NODE_ENV=production
-  - SESSION_SECRET=<any string>
-  - MONGODB_URI=<your Atlas SRV>
   - PORT=3000
-- Health: https://<your-render>.onrender.com/health
-- Admin:  https://<your-render>.onrender.com/admin/profile
-          https://<your-render>.onrender.com/admin/codeworks
-- API:    https://<your-render>.onrender.com/api/profile
-          https://<your-render>.onrender.com/api/codeworks
+- Health: https://portfolio-web-8ozh.onrender.com/health
+- Admin:
+  - https://portfolio-web-8ozh.onrender.com/admin/profile
+  - https://portfolio-web-8ozh.onrender.com/admin/codeworks
+- API:
+  - https://portfolio-web-8ozh.onrender.com/api/profile
+  - https://portfolio-web-8ozh.onrender.com/api/codeworks
