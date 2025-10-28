@@ -42,3 +42,18 @@ Then visit http://localhost:3000/admin/codeworks
 
 GET http://localhost:3000/api/profile
 GET http://localhost:3000/api/codeworks
+
+### Deploy (Render)
+- Build: `npm install`
+- Start: `npm start`
+- Env:
+  - NODE_VERSION=20
+  - NODE_ENV=production
+  - SESSION_SECRET=<any string>
+  - MONGODB_URI=<your Atlas SRV>
+  - PORT=3000
+- Health: https://<your-render>.onrender.com/health
+- Admin:  https://<your-render>.onrender.com/admin/profile
+          https://<your-render>.onrender.com/admin/codeworks
+- API:    https://<your-render>.onrender.com/api/profile
+          https://<your-render>.onrender.com/api/codeworks

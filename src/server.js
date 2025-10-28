@@ -56,7 +56,7 @@ const MONGODB_URI = process.env.MONGODB_URI;
     console.log('Mongo connected');
 
     app.listen(PORT, () => {
-      console.log(`API running on http://localhost:${PORT}`);
+      console.log(`API running on port ${PORT}`);
     });
   } catch (err) {
     console.error('Startup error:', err.message);
