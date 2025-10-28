@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const morgan = require('morgan');
 const cors = require('cors');
 const path = require('path');
-
 require('dotenv').config();
 
 const app = express();
@@ -17,7 +16,7 @@ app.use(morgan('dev'));
 // static
 app.use(express.static(path.join(__dirname, 'public')));
 
-// views
+// views（EJS）
 const expressLayouts = require('express-ejs-layouts');
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -49,6 +48,10 @@ const MONGODB_URI = process.env.MONGODB_URI;
 (async () => {
   try {
     if (!MONGODB_URI) throw new Error('Missing MONGODB_URI');
+    try {
+      const shown = MONGODB_URI.replace(/:\/\/.*?:.*?@/, '://<user>:<pass>@');
+      console.log('Connecting to', shown);
+    } catch {}
     await mongoose.connect(MONGODB_URI, { dbName: 'portfolio' });
     console.log('Mongo connected');
 
